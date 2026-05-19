@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="cs">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="Fotogalerie – Chata Lačnov v Beskydech" />
+        <title>Fotogalerie – Chata Lačnov</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+        <link href="css/styles.css" rel="stylesheet" />
+        <style>
+        /* ═══════════════════════════════
+           GALLERY PAGE STYLES
+        ═══════════════════════════════ */
+
+        /* Filter pills */
+        .filter-bar { display: flex; flex-wrap: wrap; gap: .5rem; }
+        .filter-btn {
+            padding: .4rem 1.1rem; border-radius: 50px; font-size: .85rem; font-weight: 600;
+            border: 2px solid #c8cf9a; color: #4a5534; background: transparent;
+            cursor: pointer; transition: all .18s;
+        }
+        .filter-btn:hover  { background: #e8f0e0; border-color: #4a5534; }
+        .filter-btn.active { background: #4a5534; border-color: #4a5534; color: #fff; }
+
+        /* Masonry grid */
+        .gallery-grid {
+            columns: 3 280px;
+            column-gap: 1rem;
+        }
+        .gallery-item {
+            break-inside: avoid;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+            border-radius: .75rem;
+            cursor: pointer;
+            background: #e8e3d5;
+        }
+        .gallery-item img {
+            width: 100%; display: block;
+            transition: transform .35s ease;
+            border-radius: .75rem;
+        }
+        .gallery-item:hover img { transform: scale(1.04); }
+
+        /* Overlay on hover */
+        .gallery-item .g-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(44,50,32,.7) 0%, transparent 55%);
+            opacity: 0; transition: opacity .25s;
+            border-radius: .75rem;
+            display: flex; align-items: flex-end; padding: .9rem 1rem;
+        }
+        .gallery-item:hover .g-overlay { opacity: 1; }
+        .gallery-item .g-label {
+            color: #fff; font-size: .8rem; font-weight: 600;
+            background: rgba(0,0,0,.25); border-radius: 20px;
+            padding: .2rem .7rem; backdrop-filter: blur(4px);
+        }
+        .gallery-item .g-zoom {
+            position: absolute; top: .6rem; right: .6rem;
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,.85); color: #2c3220;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .9rem; opacity: 0; transition: opacity .2s;
+        }
+        .gallery-item:hover .g-zoom { opacity: 1; }
+
+        /* Hide filtered items */
+        .gallery-item.hidden { display: none; }
+
+        /* Empty state */
+        #emptyState {
+            display: none; text-align: center;
+            padding: 4rem 1rem; color: #6b7a50;
+        }
+        #emptyState i { font-size: 3rem; display: block; margin-bottom: 1rem; opacity: .4; }
+
+        /* ── Upload zone ── */
+        .upload-zone {
+            border: 2px dashed #c8cf9a; border-radius: 1rem;
+            padding: 2.5rem 1.5rem; text-align: center;
+            background: #fafaf7; cursor: pointer;
+            transition: border-color .2s, background .2s;
+            position: relative;
+        }
+        .upload-zone.dragover { border-color: #4a5534; background: #f0f5e8; }
+        .upload-zone input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        }
+        .upload-zone i { font-size: 2.5rem; color: #c8cf9a; display: block; margin-bottom: .75rem; }
+        .upload-zone:hover { border-color: #4a5534; }
+        .upload-zone:hover i { color: #4a5534; }
+
+        /* Category tag on upload */
+        .cat-select { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; justify-content: center; }
+        .cat-tag {
+            padding: .25rem .75rem; border-radius: 20px; font-size: .78rem; font-weight: 600;
+            border: 1.5px solid #c8cf9a; color: #4a5534; cursor: pointer; background: transparent;
+            transition: all .15s;
+        }
+        .cat-tag.selected { background: #4a5534; border-color: #4a5534; color: #fff; }
+
+        /* Upload queue */
+        .queue-item {
+            display: flex; align-items: center; gap: .75rem;
+            padding: .5rem .75rem; background: #fff; border-radius: .5rem;
+            border: 1px solid #e8e3d5; margin-bottom: .4rem;
+        }
+        .queue-item img { width: 48px; height: 48px; object-fit: cover; border-radius: .35rem; }
+        .queue-item .qname { flex: 1; font-size: .82rem; font-weight: 500; color: #2c3220; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .queue-item .qcat  { font-size: .72rem; background: #e8f0e0; color: #4a5534; padding: .15rem .5rem; border-radius: 10px; font-weight: 600; }
+        .queue-item .qrm   { color: #dc3545; background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0 .25rem; }
+
+        /* ── Lightbox ── */
+        #lightbox {
+            display: none; position: fixed; inset: 0; z-index: 2000;
+            background: rgba(20,24,14,.93); align-items: center; justify-content: center;
+            backdrop-filter: blur(6px);
+        }
+        #lightbox.open { display: flex; }
+        #lightbox .lb-wrap {
+            position: relative; max-width: 90vw; max-height: 90vh;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        #lightbox img {
+            max-width: 88vw; max-height: 80vh;
+            border-radius: 1rem; box-shadow: 0 24px 80px rgba(0,0,0,.6);
+            object-fit: contain;
+        }
+        #lbCaption {
+            color: rgba(255,255,255,.75); font-size: .85rem; margin-top: .75rem; text-align: center;
+        }
+        #lbClose {
+            position: fixed; top: 1.25rem; right: 1.5rem;
+            background: rgba(255,255,255,.12); border: none; color: #fff;
+            width: 42px; height: 42px; border-radius: 50%; font-size: 1.2rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background .2s;
+        }
+        #lbClose:hover { background: rgba(255,255,255,.25); }
+        .lb-nav {
+            position: fixed; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,.12); border: none; color: #fff;
+            width: 46px; height: 46px; border-radius: 50%; font-size: 1.3rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background .2s;
+        }
+        .lb-nav:hover { background: rgba(255,255,255,.28); }
+        #lbPrev { left: 1rem; }
+        #lbNext { right: 1rem; }
+
+        /* ── Animations ── */
+        .gallery-item { animation: popIn .3s ease both; }
+        @keyframes popIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+
+        /* ── Stats bar ── */
+        .stats-bar { font-size: .82rem; color: #6b7a50; }
+        </style>
+    </head>
+    <body class="d-flex flex-column">
+        <main class="flex-shrink-0">
+
+            <!-- Navigation -->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container px-5">
+                    <a class="navbar-brand" href="index.html">CHATA LAČNOV</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                            <li class="nav-item"><a class="nav-link" href="index.html">Domů</a></li>
+                            <li class="nav-item"><a class="nav-link" href="about.html">O nás</a></li>
+                            <li class="nav-item"><a class="nav-link" href="contact.html">Kontakt</a></li>
+                            <li class="nav-item"><a class="nav-link" href="pricing.html">Rezervace</a></li>
+                            <li class="nav-item"><a class="nav-link active" href="gallery.html">Galerie</a></li>
+                            <li class="nav-item"><a class="nav-link" href="faq.html">FAQ</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Header -->
+            <header class="py-5 bg-chata">
+                <div class="container px-5">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8 col-xxl-6">
+                            <div class="text-center my-5">
+                                <h1 class="fw-bolder mb-3 text-white">Fotogalerie</h1>
+                                <p class="lead fw-normal text-white-50 mb-0">
+                                    Prohlédněte si chatu, pokoje, areál i okolní přírodu<br>
+                                    dříve, než si rezervujete pobyt.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ══ GALLERY SECTION ══ -->
+            <section class="py-5 bg-light">
+                <div class="container px-5 my-3">
+
+                    <!-- Upload panel (collapsible) -->
+                    <div class="mb-4">
+                        <button class="btn btn-outline-primary btn-sm px-3" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#uploadPanel"
+                                aria-expanded="false">
+                            <i class="bi bi-cloud-upload me-2"></i>Přidat fotografie
+                        </button>
+                    </div>
+
+                    <div class="collapse mb-5" id="uploadPanel">
+                        <div class="bg-white rounded-3 p-4 shadow-sm">
+                            <div class="row gx-4">
+                                <div class="col-lg-6">
+                                    <div class="upload-zone" id="dropZone">
+                                        <input type="file" id="fileInput" accept="image/*" multiple />
+                                        <i class="bi bi-images"></i>
+                                        <p class="fw-semibold mb-1" style="color:#4a5534">Přetáhněte fotografie sem</p>
+                                        <p class="text-muted small mb-2">nebo klikněte pro výběr souborů</p>
+                                        <p class="text-muted" style="font-size:.75rem">JPG, PNG, WEBP · max 20 MB / soubor</p>
+                                    </div>
+
+                                    <!-- Category selection -->
+                                    <div class="mt-3">
+                                        <p class="fw-semibold small mb-2" style="color:#2c3220">Kategorie pro nahrávané fotky:</p>
+                                        <div class="cat-select" id="uploadCatSelect">
+                                            <button class="cat-tag selected" data-cat="exteriér">Exteriér</button>
+                                            <button class="cat-tag" data-cat="interiér">Interiér</button>
+                                            <button class="cat-tag" data-cat="pokoje">Pokoje</button>
+                                            <button class="cat-tag" data-cat="jídelna">Jídelna</button>
+                                            <button class="cat-tag" data-cat="areál">Areál</button>
+                                            <button class="cat-tag" data-cat="okolí">Okolí</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6 mt-4 mt-lg-0">
+                                    <p class="fw-semibold small mb-2" style="color:#2c3220">
+                                        Fronta k nahrání <span class="text-muted fw-normal" id="queueCount"></span>
+                                    </p>
+                                    <div id="uploadQueue" style="max-height:220px;overflow-y:auto"></div>
+                                    <div id="queueEmpty" class="text-muted small fst-italic">Zatím žádné soubory.</div>
+                                    <button class="btn btn-primary mt-3 w-100" id="btnPublish" style="display:none" onclick="publishAll()">
+                                        <i class="bi bi-check2-circle me-2"></i>Přidat do galerie
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter bar + stats -->
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                        <div class="filter-bar" id="filterBar">
+                            <button class="filter-btn active" data-filter="vše">Vše</button>
+                            <button class="filter-btn" data-filter="exteriér">Exteriér</button>
+                            <button class="filter-btn" data-filter="interiér">Interiér</button>
+                            <button class="filter-btn" data-filter="pokoje">Pokoje</button>
+                            <button class="filter-btn" data-filter="jídelna">Jídelna</button>
+                            <button class="filter-btn" data-filter="areál">Areál</button>
+                            <button class="filter-btn" data-filter="okolí">Okolí</button>
+                        </div>
+                        <span class="stats-bar" id="statsBar">0 fotografií</span>
+                    </div>
+
+                    <!-- Gallery grid -->
+                    <div class="gallery-grid" id="galleryGrid"></div>
+
+                    <!-- Empty state -->
+                    <div id="emptyState">
+                        <i class="bi bi-images"></i>
+                        <p class="fw-semibold mb-1">Žádné fotografie v této kategorii</p>
+                        <p class="text-muted small">Zkuste jinou kategorii nebo přidejte fotografie pomocí tlačítka výše.</p>
+                    </div>
+
+                    <!-- CTA -->
+                    <div class="text-center mt-5 pt-3 border-top">
+                        <p class="lead text-muted mb-3">Líbí se vám to? Zarezervujte si pobyt ještě dnes.</p>
+                        <a href="pricing.html" class="btn btn-primary btn-lg px-5">
+                            <i class="bi bi-calendar-check me-2"></i>Rezervovat pobyt
+                        </a>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Lightbox -->
+        <div id="lightbox">
+            <button id="lbClose" onclick="closeLightbox()"><i class="bi bi-x-lg"></i></button>
+            <button class="lb-nav" id="lbPrev" onclick="lbNav(-1)"><i class="bi bi-chevron-left"></i></button>
+            <button class="lb-nav" id="lbNext" onclick="lbNav(1)"><i class="bi bi-chevron-right"></i></button>
+            <div class="lb-wrap">
+                <img id="lbImg" src="" alt="" />
+                <div id="lbCaption"></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-dark py-4 mt-auto">
+            <div class="container px-5">
+                <div class="row align-items-center justify-content-between flex-column flex-sm-row">
+                    <div class="col-auto"><div class="small m-0 text-white">Copyright &copy; Chata Lačnov 2026</div></div>
+                    <div class="col-auto">
+                        <a class="link-light small" href="privacy.html">Základní informace</a>
+                        <span class="text-white mx-1">&middot;</span>
+                        <a class="link-light small" href="terms.html">Obchodní podmínky</a>
+                        <span class="text-white mx-1">&middot;</span>
+                        <a class="link-light small" href="contact.html">Kontakt</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="js/scripts.js"></script>
+        <script>
+        /* ═══════════════════════════════════════
+           GALLERY ENGINE
+        ═══════════════════════════════════════ */
+
+        /* ── State ── */
+        let photos        = [];   // { id, src, name, cat }
+        let queue         = [];   // { file, src, name, cat }
+        let activeFilter  = 'vše';
+        let lbIndex       = 0;
+        let selectedUploadCat = 'exteriér';
+
+        /* ── Category tag selection ── */
+        document.querySelectorAll('.cat-tag').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.cat-tag').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedUploadCat = btn.dataset.cat;
+                // Update cat on all queued items
+                queue.forEach(q => q.cat = selectedUploadCat);
+                renderQueue();
+            });
+        });
+
+        /* ── Drag & drop + file input ── */
+        const dropZone  = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            addFilesToQueue([...e.dataTransfer.files]);
+        });
+        fileInput.addEventListener('change', () => {
+            addFilesToQueue([...fileInput.files]);
+            fileInput.value = '';
+        });
+
+        function addFilesToQueue(files) {
+            files.filter(f => f.type.startsWith('image/')).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    queue.push({ id: Date.now() + Math.random(), file, src: e.target.result, name: file.name, cat: selectedUploadCat });
+                    renderQueue();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderQueue() {
+            const qEl    = document.getElementById('uploadQueue');
+            const emptyEl= document.getElementById('queueEmpty');
+            const btnPub = document.getElementById('btnPublish');
+            const cnt    = document.getElementById('queueCount');
+
+            cnt.textContent = queue.length ? '(' + queue.length + ')' : '';
+            emptyEl.style.display = queue.length ? 'none' : 'block';
+            btnPub.style.display  = queue.length ? 'block' : 'none';
+            qEl.innerHTML = '';
+
+            queue.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'queue-item';
+                div.innerHTML = `
+                    <img src="${item.src}" alt="${item.name}" />
+                    <span class="qname">${item.name}</span>
+                    <span class="qcat">${item.cat}</span>
+                    <button class="qrm" title="Odstranit" onclick="removeFromQueue(${idx})"><i class="bi bi-x-lg"></i></button>`;
+                qEl.appendChild(div);
+            });
+        }
+
+        function removeFromQueue(idx) {
+            queue.splice(idx, 1);
+            renderQueue();
+        }
+
+        function publishAll() {
+            queue.forEach(item => {
+                photos.push({ id: item.id, src: item.src, name: item.name, cat: item.cat });
+            });
+            queue = [];
+            renderQueue();
+            renderGallery();
+            // Close upload panel
+            const panel = document.getElementById('uploadPanel');
+            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(panel);
+            bsCollapse.hide();
+        }
+
+        /* ── Filter ── */
+        document.getElementById('filterBar').addEventListener('click', e => {
+            const btn = e.target.closest('.filter-btn');
+            if (!btn) return;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeFilter = btn.dataset.filter;
+            renderGallery();
+        });
+
+        /* ── Render gallery ── */
+        function renderGallery() {
+            const grid   = document.getElementById('galleryGrid');
+            const empty  = document.getElementById('emptyState');
+            const stats  = document.getElementById('statsBar');
+            grid.innerHTML = '';
+
+            const visible = photos.filter(p => activeFilter === 'vše' || p.cat === activeFilter);
+            stats.textContent = visible.length + ' ' + pluralFotos(visible.length);
+
+            if (visible.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            visible.forEach((photo, idx) => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.dataset.id  = photo.id;
+                item.dataset.idx = idx;
+                item.style.animationDelay = (idx * 0.04) + 's';
+                item.innerHTML = `
+                    <img src="${photo.src}" alt="${photo.name}" loading="lazy" />
+                    <div class="g-overlay">
+                        <span class="g-label"><i class="bi bi-tag me-1"></i>${photo.cat}</span>
+                    </div>
+                    <div class="g-zoom"><i class="bi bi-arrows-fullscreen"></i></div>`;
+                item.addEventListener('click', () => openLightbox(idx, visible));
+                grid.appendChild(item);
+            });
+        }
+
+        /* ── Lightbox ── */
+        let lbPhotos = [];
+
+        function openLightbox(idx, visiblePhotos) {
+            lbPhotos = visiblePhotos;
+            lbIndex  = idx;
+            showLbPhoto();
+            document.getElementById('lightbox').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function showLbPhoto() {
+            const p = lbPhotos[lbIndex];
+            document.getElementById('lbImg').src = p.src;
+            document.getElementById('lbImg').alt = p.name;
+            document.getElementById('lbCaption').textContent = p.name + ' · ' + p.cat + '  (' + (lbIndex + 1) + ' / ' + lbPhotos.length + ')';
+            document.getElementById('lbPrev').style.display = lbIndex === 0 ? 'none' : 'flex';
+            document.getElementById('lbNext').style.display = lbIndex === lbPhotos.length - 1 ? 'none' : 'flex';
+        }
+
+        function lbNav(dir) {
+            lbIndex = Math.max(0, Math.min(lbPhotos.length - 1, lbIndex + dir));
+            showLbPhoto();
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', e => {
+            if (!document.getElementById('lightbox').classList.contains('open')) return;
+            if (e.key === 'ArrowLeft')  lbNav(-1);
+            if (e.key === 'ArrowRight') lbNav(1);
+            if (e.key === 'Escape')     closeLightbox();
+        });
+
+        // Click backdrop to close
+        document.getElementById('lightbox').addEventListener('click', e => {
+            if (e.target === document.getElementById('lightbox')) closeLightbox();
+        });
+
+        /* ── Helpers ── */
+        function pluralFotos(n) {
+            if (n === 1) return 'fotografie';
+            if (n >= 2 && n <= 4) return 'fotografie';
+            return 'fotografií';
+        }
+
+        /* ── Init ── */
+        renderGallery();
+        </script>
+    </body>
+</html>
