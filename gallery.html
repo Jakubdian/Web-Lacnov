@@ -56,66 +56,8 @@
             <section class="py-5 bg-light">
                 <div class="container px-5 my-3">
 
-                    <!-- Upload panel (collapsible) -->
-                    <div class="mb-4">
-                        <button class="btn btn-outline-primary btn-sm px-3" type="button"
-                                data-bs-toggle="collapse" data-bs-target="#uploadPanel"
-                                aria-expanded="false">
-                            <i class="bi bi-cloud-upload me-2"></i>Přidat fotografie
-                        </button>
-                    </div>
-
-                    <div class="collapse mb-5" id="uploadPanel">
-                        <div class="bg-white rounded-3 p-4 shadow-sm">
-                            <div class="row gx-4">
-                                <div class="col-lg-6">
-                                    <div class="upload-zone" id="dropZone">
-                                        <input type="file" id="fileInput" accept="image/*" multiple />
-                                        <i class="bi bi-images"></i>
-                                        <p class="fw-semibold mb-1" style="color:#4a5534">Přetáhněte fotografie sem</p>
-                                        <p class="text-muted small mb-2">nebo klikněte pro výběr souborů</p>
-                                        <p class="text-muted" style="font-size:.75rem">JPG, PNG, WEBP · max 20 MB / soubor</p>
-                                    </div>
-
-                                    <!-- Category selection -->
-                                    <div class="mt-3">
-                                        <p class="fw-semibold small mb-2" style="color:#2c3220">Kategorie pro nahrávané fotky:</p>
-                                        <div class="cat-select" id="uploadCatSelect">
-                                            <button class="cat-tag selected" data-cat="exteriér">Exteriér</button>
-                                            <button class="cat-tag" data-cat="interiér">Interiér</button>
-                                            <button class="cat-tag" data-cat="pokoje">Pokoje</button>
-                                            <button class="cat-tag" data-cat="jídelna">Jídelna</button>
-                                            <button class="cat-tag" data-cat="areál">Areál</button>
-                                            <button class="cat-tag" data-cat="okolí">Okolí</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-lg-6 mt-4 mt-lg-0">
-                                    <p class="fw-semibold small mb-2" style="color:#2c3220">
-                                        Fronta k nahrání <span class="text-muted fw-normal" id="queueCount"></span>
-                                    </p>
-                                    <div id="uploadQueue" style="max-height:220px;overflow-y:auto"></div>
-                                    <div id="queueEmpty" class="text-muted small fst-italic">Zatím žádné soubory.</div>
-                                    <button class="btn btn-primary mt-3 w-100" id="btnPublish" style="display:none" onclick="publishAll()">
-                                        <i class="bi bi-check2-circle me-2"></i>Přidat do galerie
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Filter bar + stats -->
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                        <div class="filter-bar" id="filterBar">
-                            <button class="filter-btn active" data-filter="vše">Vše</button>
-                            <button class="filter-btn" data-filter="exteriér">Exteriér</button>
-                            <button class="filter-btn" data-filter="interiér">Interiér</button>
-                            <button class="filter-btn" data-filter="pokoje">Pokoje</button>
-                            <button class="filter-btn" data-filter="jídelna">Jídelna</button>
-                            <button class="filter-btn" data-filter="areál">Areál</button>
-                            <button class="filter-btn" data-filter="okolí">Okolí</button>
-                        </div>
+                    <!-- Stats -->
+                    <div class="d-flex flex-wrap align-items-center justify-content-end gap-3 mb-4">
                         <span class="stats-bar" id="statsBar">0 fotografií</span>
                     </div>
 
@@ -144,13 +86,17 @@
 
         <!-- Lightbox -->
         <div id="lightbox">
-            <button id="lbClose" onclick="closeLightbox()"><i class="bi bi-x-lg"></i></button>
-            <button class="lb-nav" id="lbPrev" onclick="lbNav(-1)"><i class="bi bi-chevron-left"></i></button>
-            <button class="lb-nav" id="lbNext" onclick="lbNav(1)"><i class="bi bi-chevron-right"></i></button>
+            <button id="lbClose" onclick="closeLightbox()" style="z-index:10;position:fixed;"><i class="bi bi-x-lg"></i></button>
+            <button class="lb-nav" id="lbPrev" onclick="lbNav(-1)" style="z-index:10;position:fixed;left:1rem;"><i class="bi bi-chevron-left"></i></button>
+            <button class="lb-nav" id="lbNext" onclick="lbNav(1)" style="z-index:10;position:fixed;right:1rem;"><i class="bi bi-chevron-right"></i></button>
+            <div id="lbCaption360" style="display:none;position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,0.5);padding:0.4rem 1rem;border-radius:999px;font-size:.85rem;z-index:10;"></div>
             <div class="lb-wrap">
+                <!-- Normal image view -->
                 <img id="lbImg" src="" alt="" />
                 <div id="lbCaption"></div>
             </div>
+            <!-- 360 panorama view (Pannellum) — full screen, sits above lb-wrap -->
+            <div id="lb360" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;"></div>
         </div>
 
         <!-- Footer -->
@@ -169,146 +115,64 @@
             </div>
         </footer>
 
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+        <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         <script src="js/scripts.js"></script>
         <script>
         /* ═══════════════════════════════════════
            GALLERY ENGINE
+           lacnov1–24, numbers 3-9 are 360° panoramas
         ═══════════════════════════════════════ */
 
-        /* ── State ── */
-        let photos        = [];   // { id, src, name, cat }
-        let queue         = [];   // { file, src, name, cat }
-        let activeFilter  = 'vše';
-        let lbIndex       = 0;
-        let selectedUploadCat = 'exteriér';
+        const PANORAMAS = new Set([3,4,5,6,7,8,9]);
 
-        /* ── Category tag selection ── */
-        document.querySelectorAll('.cat-tag').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.cat-tag').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                selectedUploadCat = btn.dataset.cat;
-                // Update cat on all queued items
-                queue.forEach(q => q.cat = selectedUploadCat);
-                renderQueue();
-            });
-        });
-
-        /* ── Drag & drop + file input ── */
-        const dropZone  = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('dragover'));
-        dropZone.addEventListener('drop', e => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-            addFilesToQueue([...e.dataTransfer.files]);
-        });
-        fileInput.addEventListener('change', () => {
-            addFilesToQueue([...fileInput.files]);
-            fileInput.value = '';
-        });
-
-        function addFilesToQueue(files) {
-            files.filter(f => f.type.startsWith('image/')).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    queue.push({ id: Date.now() + Math.random(), file, src: e.target.result, name: file.name, cat: selectedUploadCat });
-                    renderQueue();
-                };
-                reader.readAsDataURL(file);
+        let photos = [];
+        for (let i = 1; i <= 22; i++) {
+            photos.push({
+                src:  'assets/lacnov' + i + '.jpg',
+                name: 'Lačnov ' + i,
+                cat:  'vše',
+                is360: PANORAMAS.has(i)
             });
         }
 
-        function renderQueue() {
-            const qEl    = document.getElementById('uploadQueue');
-            const emptyEl= document.getElementById('queueEmpty');
-            const btnPub = document.getElementById('btnPublish');
-            const cnt    = document.getElementById('queueCount');
-
-            cnt.textContent = queue.length ? '(' + queue.length + ')' : '';
-            emptyEl.style.display = queue.length ? 'none' : 'block';
-            btnPub.style.display  = queue.length ? 'block' : 'none';
-            qEl.innerHTML = '';
-
-            queue.forEach((item, idx) => {
-                const div = document.createElement('div');
-                div.className = 'queue-item';
-                div.innerHTML = `
-                    <img src="${item.src}" alt="${item.name}" />
-                    <span class="qname">${item.name}</span>
-                    <span class="qcat">${item.cat}</span>
-                    <button class="qrm" title="Odstranit" onclick="removeFromQueue(${idx})"><i class="bi bi-x-lg"></i></button>`;
-                qEl.appendChild(div);
-            });
-        }
-
-        function removeFromQueue(idx) {
-            queue.splice(idx, 1);
-            renderQueue();
-        }
-
-        function publishAll() {
-            queue.forEach(item => {
-                photos.push({ id: item.id, src: item.src, name: item.name, cat: item.cat });
-            });
-            queue = [];
-            renderQueue();
-            renderGallery();
-            // Close upload panel
-            const panel = document.getElementById('uploadPanel');
-            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(panel);
-            bsCollapse.hide();
-        }
-
-        /* ── Filter ── */
-        document.getElementById('filterBar').addEventListener('click', e => {
-            const btn = e.target.closest('.filter-btn');
-            if (!btn) return;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            activeFilter = btn.dataset.filter;
-            renderGallery();
-        });
+        let activeFilter = 'vše';
+        let lbIndex      = 0;
+        let lbPhotos     = [];
+        let pannellumViewer = null;
 
         /* ── Render gallery ── */
         function renderGallery() {
-            const grid   = document.getElementById('galleryGrid');
-            const empty  = document.getElementById('emptyState');
-            const stats  = document.getElementById('statsBar');
+            const grid  = document.getElementById('galleryGrid');
+            const empty = document.getElementById('emptyState');
+            const stats = document.getElementById('statsBar');
             grid.innerHTML = '';
 
-            const visible = photos.filter(p => activeFilter === 'vše' || p.cat === activeFilter);
+            const visible = activeFilter === 'vše' ? photos : photos.filter(p => p.cat === activeFilter);
             stats.textContent = visible.length + ' ' + pluralFotos(visible.length);
 
-            if (visible.length === 0) {
-                empty.style.display = 'block';
-                return;
-            }
+            if (visible.length === 0) { empty.style.display = 'block'; return; }
             empty.style.display = 'none';
 
             visible.forEach((photo, idx) => {
                 const item = document.createElement('div');
                 item.className = 'gallery-item';
-                item.dataset.id  = photo.id;
-                item.dataset.idx = idx;
                 item.style.animationDelay = (idx * 0.04) + 's';
                 item.innerHTML = `
                     <img src="${photo.src}" alt="${photo.name}" loading="lazy" />
                     <div class="g-overlay">
-                        <span class="g-label"><i class="bi bi-tag me-1"></i>${photo.cat}</span>
+                        ${photo.is360
+                            ? '<span class="g-label"><i class="bi bi-globe me-1"></i>360°</span>'
+                            : '<span class="g-label"><i class="bi bi-image me-1"></i>foto</span>'}
                     </div>
-                    <div class="g-zoom"><i class="bi bi-arrows-fullscreen"></i></div>`;
+                    <div class="g-zoom"><i class="bi bi-${photo.is360 ? 'globe2' : 'arrows-fullscreen'}"></i></div>`;
                 item.addEventListener('click', () => openLightbox(idx, visible));
                 grid.appendChild(item);
             });
         }
 
         /* ── Lightbox ── */
-        let lbPhotos = [];
-
         function openLightbox(idx, visiblePhotos) {
             lbPhotos = visiblePhotos;
             lbIndex  = idx;
@@ -318,12 +182,46 @@
         }
 
         function showLbPhoto() {
-            const p = lbPhotos[lbIndex];
-            document.getElementById('lbImg').src = p.src;
-            document.getElementById('lbImg').alt = p.name;
-            document.getElementById('lbCaption').textContent = p.name + ' · ' + p.cat + '  (' + (lbIndex + 1) + ' / ' + lbPhotos.length + ')';
+            const p         = lbPhotos[lbIndex];
+            const lbImg     = document.getElementById('lbImg');
+            const lb360     = document.getElementById('lb360');
+            const caption   = document.getElementById('lbCaption');
+            const cap360    = document.getElementById('lbCaption360');
+            const navLabel  = p.name + (p.is360 ? ' · 360°' : '') + '  (' + (lbIndex + 1) + ' / ' + lbPhotos.length + ')';
+
             document.getElementById('lbPrev').style.display = lbIndex === 0 ? 'none' : 'flex';
             document.getElementById('lbNext').style.display = lbIndex === lbPhotos.length - 1 ? 'none' : 'flex';
+
+            if (p.is360) {
+                lbImg.style.display    = 'none';
+                caption.style.display  = 'none';
+                lb360.style.display    = 'block';
+                cap360.style.display   = 'block';
+                cap360.textContent     = navLabel;
+                if (pannellumViewer) { pannellumViewer.destroy(); pannellumViewer = null; }
+                lb360.innerHTML = '';
+                setTimeout(() => {
+                    pannellumViewer = pannellum.viewer(lb360, {
+                        type: 'equirectangular',
+                        panorama: p.src,
+                        autoLoad: true,
+                        showControls: false,
+                        mouseZoom: true,
+                        hfov: 100,
+                        pitch: 0,
+                        yaw: 0,
+                    });
+                }, 50);
+            } else {
+                lb360.style.display    = 'none';
+                cap360.style.display   = 'none';
+                caption.style.display  = 'block';
+                if (pannellumViewer) { pannellumViewer.destroy(); pannellumViewer = null; lb360.innerHTML = ''; }
+                lbImg.style.display = 'block';
+                lbImg.src           = p.src;
+                lbImg.alt           = p.name;
+                caption.textContent = navLabel;
+            }
         }
 
         function lbNav(dir) {
@@ -334,9 +232,10 @@
         function closeLightbox() {
             document.getElementById('lightbox').classList.remove('open');
             document.body.style.overflow = '';
+            if (pannellumViewer) { pannellumViewer.destroy(); pannellumViewer = null; }
+            document.getElementById('lb360').innerHTML = '';
         }
 
-        // Keyboard navigation
         document.addEventListener('keydown', e => {
             if (!document.getElementById('lightbox').classList.contains('open')) return;
             if (e.key === 'ArrowLeft')  lbNav(-1);
@@ -344,7 +243,6 @@
             if (e.key === 'Escape')     closeLightbox();
         });
 
-        // Click backdrop to close
         document.getElementById('lightbox').addEventListener('click', e => {
             if (e.target === document.getElementById('lightbox')) closeLightbox();
         });
