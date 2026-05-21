@@ -6,17 +6,17 @@
         <meta name="description" content />
         <meta name="author" content />
         <title>Kontakt - Chata Lačnov</title>
-        <!-- Favicon-->
+        <!-- Ikona -->
         <link rel="icon" type="image/x-icon" href="assets/lacnovlogo.ico" />
-        <!-- Bootstrap icons-->
+        <!-- Bootstrap ikony -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
-        <!-- Core theme CSS (includes Bootstrap)-->
+        <!-- Vzhled CSS (Bootstrap) -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" />
         <link href="css/styles.css" rel="stylesheet" />
     </head>
     <body class="d-flex flex-column">
         <main class="flex-shrink-0">
-            <!-- Navigation-->
+            <!-- Navigation -->
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container px-5">
                     <a class="navbar-brand d-flex align-items-center gap-2" href="index.html"><img src="assets/lacnovlogo.ico" alt="logo" style="height:32px;width:32px;object-fit:contain;">CHATA LAČNOV</a>
@@ -33,10 +33,10 @@
                     </div>
                 </div>
             </nav>
-            <!-- Page content-->
+            <!-- Obsah -->
             <section class="py-5">
                 <div class="container px-5">
-                    <!-- Contact form-->
+                    <!-- Formulář -->
                     <div class="bg-light rounded-3 py-5 px-4 px-md-5 mb-5">
                         <div class="text-center mb-5">
                             <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-envelope"></i></div>
@@ -51,32 +51,26 @@
                                 <!-- https://startbootstrap.com/solution/contact-forms-->
                                 <!-- to get an API token!-->
                                 <form id="contactForm" data-sb-form-api-token="API_TOKEN">
-                                    <!-- Name input-->
                                     <div class="form-floating mb-3">
                                         <input class="form-control" id="name" type="text" placeholder="Enter your name..." data-sb-validations="required" />
                                         <label for="name">Jméno příjmení</label>
                                         <div class="invalid-feedback" data-sb-feedback="name:required">Jméno je povinné.</div>
                                     </div>
-                                    <!-- Email address input-->
                                     <div class="form-floating mb-3">
                                         <input class="form-control" id="email" type="email" placeholder="name@example.com" data-sb-validations="required,email" />
                                         <label for="email">Email</label>
                                         <div class="invalid-feedback" data-sb-feedback="email:required">Email je povinný.</div>
                                         <div class="invalid-feedback" data-sb-feedback="email:email">Email není platný.</div>
                                     </div>
-                                    <!-- Phone number input-->
                                     <div class="form-floating mb-3">
                                         <input class="form-control" id="phone" type="tel" placeholder="(123) 456-7890" data-sb-validations="required" />
                                         <label for="phone">Telefonní číslo</label>
                                         <div class="invalid-feedback" data-sb-feedback="phone:required">Telefonní číslo je povinné.</div>
-                                    </div>
-                                    <!-- Message input-->
                                     <div class="form-floating mb-3">
                                         <textarea class="form-control" id="message" type="text" placeholder="Enter your message here..." style="height: 10rem" data-sb-validations="required"></textarea>
                                         <label for="message">Zpráva</label>
                                         <div class="invalid-feedback" data-sb-feedback="message:required">Zpráva je povinná.</div>
                                     </div>
-                                    <!-- Submit success message-->
                                     <div class="d-none" id="submitSuccessMessage">
                                         <div class="text-center mb-3">
                                             <div class="fw-bolder">Úspěšně jste odeslali svoji zprávu!</div>
@@ -85,15 +79,12 @@
                                             <a href="https://startbootstrap.com/solution/contact-forms">https://startbootstrap.com/solution/contact-forms</a>
                                         </div>
                                     </div>
-                                    <!-- Submit error message-->
                                     <div class="d-none" id="submitErrorMessage"><div class="text-center text-danger mb-3">Error sending message!</div></div>
-                                    <!-- Submit Button-->
                                     <div class="d-grid"><button class="btn btn-primary btn-lg disabled" id="submitButton" type="submit">Submit</button></div>
                                 </form>
                             </div>
                         </div>
                     </div>
-                    <!-- Contact cards-->
                     <div class="row gx-5 row-cols-2 row-cols-lg-4 py-5">
                         <div class="col">
                             <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-chat-dots"></i></div>
@@ -119,22 +110,22 @@
                 </div>
             </section>
         </main>
-        <!-- Footer-->
+        <!-- Footer -->
         <footer class="bg-dark py-5 mt-auto">
             <div class="container px-5">
                 <div class="row gy-4 align-items-start text-center text-sm-start">
-                    <!-- Left: copyright -->
+                    <!-- Levo: copyright -->
                     <div class="col-sm-4">
                         <div class="small text-white fw-semibold mb-1">CHATA LAČNOV</div>
                         <div class="small text-white-50">Copyright &copy; Chata Lačnov 2026</div>
                     </div>
-                    <!-- Centre: contact info -->
+                    <!-- Prostředek: contact info -->
                     <div class="col-sm-4 text-sm-center">
                         <div class="small text-white-50 mb-1"><i class="bi bi-geo-alt me-1"></i>Horní Lomná ev. č. 12, 739 91</div>
                         <div class="small text-white-50 mb-1"><i class="bi bi-telephone me-1"></i><a class="text-white-50 text-decoration-none" href="tel:+420558366015">+420 558 366 015</a></div>
                         <div class="small text-white-50"><i class="bi bi-envelope me-1"></i><a class="text-white-50 text-decoration-none" href="mailto:info@chatalacnov.cz">info@chatalacnov.cz</a></div>
                     </div>
-                    <!-- Right: links -->
+                    <!-- Pravo: links -->
                     <div class="col-sm-4 text-sm-end">
                         <a class="link-light small" href="privacy.html">Základní informace</a>
                         <span class="text-white mx-1">&middot;</span>
